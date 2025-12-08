@@ -1,0 +1,19 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb #поменять для дз, чтобы работать с файлами
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: pass
+
+  jpa:
+    hibernate:
+      ddl-auto: update   # или create, если хочешь чистую схему каждый раз
+    show-sql: true
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console

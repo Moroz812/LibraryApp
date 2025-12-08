@@ -1,0 +1,15 @@
+/home/moroz/IdeaProjects/LibraryApp/src/main/java/com/example/libraryapp/LibraryApplication.java
+/home/moroz/IdeaProjects/LibraryApp/src/main/java/com/example/libraryapp/controller/BookController.java
+/home/moroz/IdeaProjects/LibraryApp/src/main/java/com/example/libraryapp/dto/BookRequest.java
+/home/moroz/IdeaProjects/LibraryApp/src/main/java/com/example/libraryapp/dto/BookResponse.java
+/home/moroz/IdeaProjects/LibraryApp/src/main/java/com/example/libraryapp/entity/Author.java
+/home/moroz/IdeaProjects/LibraryApp/src/main/java/com/example/libraryapp/entity/Book.java
+/home/moroz/IdeaProjects/LibraryApp/src/main/java/com/example/libraryapp/entity/Genre.java
+/home/moroz/IdeaProjects/LibraryApp/src/main/java/com/example/libraryapp/exception/AuthorNotFoundException.java
+/home/moroz/IdeaProjects/LibraryApp/src/main/java/com/example/libraryapp/exception/BookAlreadyExistsException.java
+/home/moroz/IdeaProjects/LibraryApp/src/main/java/com/example/libraryapp/exception/BookNotFoundException.java
+/home/moroz/IdeaProjects/LibraryApp/src/main/java/com/example/libraryapp/exception/GenreNotFoundException.java
+/home/moroz/IdeaProjects/LibraryApp/src/main/java/com/example/libraryapp/repository/AuthorRepository.java
+/home/moroz/IdeaProjects/LibraryApp/src/main/java/com/example/libraryapp/repository/BookRepository.java
+/home/moroz/IdeaProjects/LibraryApp/src/main/java/com/example/libraryapp/repository/GenreRepository.java
+/home/moroz/IdeaProjects/LibraryApp/src/main/java/com/example/libraryapp/service/BookService.java
