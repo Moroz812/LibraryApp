@@ -1,0 +1,15 @@
+com/example/libraryapp/entity/Book.class
+com/example/libraryapp/controller/BookController.class
+com/example/libraryapp/exception/BookNotFoundException.class
+com/example/libraryapp/exception/GenreNotFoundException.class
+com/example/libraryapp/dto/BookRequest.class
+com/example/libraryapp/repository/GenreRepository.class
+com/example/libraryapp/exception/AuthorNotFoundException.class
+com/example/libraryapp/LibraryApplication.class
+com/example/libraryapp/entity/Author.class
+com/example/libraryapp/entity/Genre.class
+com/example/libraryapp/repository/BookRepository.class
+com/example/libraryapp/dto/BookResponse.class
+com/example/libraryapp/exception/BookAlreadyExistsException.class
+com/example/libraryapp/repository/AuthorRepository.class
+com/example/libraryapp/service/BookService.class
