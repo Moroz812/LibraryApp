@@ -62,4 +62,10 @@ public class BookController {
     public ResponseEntity<List<BookResponse>> getBooksByGenre(@PathVariable Long genreId) {
         return ResponseEntity.ok(bookService.getBooksByGenre(genreId));
     }
+
+    @GetMapping("/top-rated")
+    public ResponseEntity<List<BookResponse>> getTopRatedBooks(
+            @RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(bookService.getTopRatedBooks(limit));
+    }
 }

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 @Service
 @Transactional
@@ -90,34 +90,105 @@ public class BookService {
 
 
     public @NotNull BookResponse getBookById(Long id) {
-        //заглушка - вернем тестовую книгу
-        Book book = new Book();
-        book.setId(id);
-        book.setTitle("Тестовая книга");
-        book.setAuthor(new Author());
-        book.setGenre(new Genre());
+        System.out.println("=== ПОЛУЧЕНИЕ КНИГИ ПО ID: " + id + " ===");
+        Book book = bookRepository.findById(id).orElse(null);
+
+        if (book == null) {
+            System.out.println("Книга не найдена, создаю тестовую...");
+            //создаем тестовую книгу
+            book = new Book();
+            book.setTitle("Тестовая книга " + id);
+            book.setPublicationYear(2024);
+
+            //автор
+            Author author = authorRepository.findById(1L).orElse(null);
+            if (author == null) {
+                author = new Author();
+                author.setName("Тестовый автор");
+                author = authorRepository.save(author);
+            }
+            book.setAuthor(author);
+
+            //жанр
+            Genre genre = genreRepository.findById(1L).orElse(null);
+            if (genre == null) {
+                genre = new Genre();
+                genre.setName("Тестовый жанр");
+                genre = genreRepository.save(genre);
+            }
+            book.setGenre(genre);
+            book = bookRepository.save(book);
+            System.out.println("Создана тестовая книга ID: " + book.getId());
+        } else {
+            System.out.println("Найдена книга: " + book.getTitle());
+        }
         return mapToResponse(book);
+    }
+
+    //метод для создания тестовых книг
+    private void createTestBooks() {
+        try {
+            //создаем авторов
+            Author author1 = new Author();
+            author1.setName("Лев Толстой");
+            author1 = authorRepository.save(author1);
+
+            Author author2 = new Author();
+            author2.setName("Фёдор Достоевский");
+            author2 = authorRepository.save(author2);
+
+            //создаем жанры
+            Genre genre1 = new Genre();
+            genre1.setName("Роман");
+            genre1 = genreRepository.save(genre1);
+
+            Genre genre2 = new Genre();
+            genre2.setName("Драма");
+            genre2 = genreRepository.save(genre2);
+
+            //создаем книги
+            Book book1 = new Book();
+            book1.setTitle("Война и мир");
+            book1.setAuthor(author1);
+            book1.setGenre(genre1);
+            book1.setPublicationYear(1869);
+            book1.setAverageRating(4.8);
+            bookRepository.save(book1);
+
+            Book book2 = new Book();
+            book2.setTitle("Преступление и наказание");
+            book2.setAuthor(author2);
+            book2.setGenre(genre1);
+            book2.setPublicationYear(1866);
+            book2.setAverageRating(4.7);
+            bookRepository.save(book2);
+
+            System.out.println("Создано 2 тестовые книги");
+        } catch (Exception e) {
+            System.out.println("Ошибка при создании тестовых книг: " + e.getMessage());
+        }
     }
 
 
     public @NotNull List<BookResponse> getAllBooks() {
-        //вернем пустой список или тестовые данные
+        System.out.println("=== ПОЛУЧЕНИЕ ВСЕХ КНИГ ===");
+
+        List<Book> books = bookRepository.findAll();
+        System.out.println("Найдено книг в базе: " + books.size());
+
+        //если нет книг - создадим тестовые
+        if (books.isEmpty()) {
+            System.out.println("Библиотека пуста, создаю тестовые книги...");
+            createTestBooks();
+            books = bookRepository.findAll();
+        }
+
         List<BookResponse> responses = new ArrayList<>();
+        for (Book book : books) {
+            responses.add(mapToResponse(book));
+        }
 
-        BookResponse book1 = new BookResponse();
-        book1.setId(1L);
-        book1.setTitle("Война и мир");
-        book1.setAuthorName("Лев Толстой");
-        book1.setGenreName("Роман");
-        responses.add(book1);
-
-        BookResponse book2 = new BookResponse();
-        book2.setId(2L);
-        book2.setTitle("Преступление и наказание");
-        book2.setAuthorName("Фёдор Достоевский");
-        book2.setGenreName("Роман");
-        responses.add(book2);
-
+        System.out.println("Возвращаю " + responses.size() + " книг");
         return responses;
     }
 
@@ -261,5 +332,31 @@ public class BookService {
 //        response.setAverageRating(book.getAverageRating());
 //        response.setPageCount(book.getPageCount());
         return response;
+    }
+
+    public List<BookResponse> getTopRatedBooks(int limit) {
+        System.out.println("=== ТОП КНИГ ПО РЕЙТИНГУ (лимит: " + limit + ") ===");
+        //получаем все книги, сортируем по рейтингу
+        List<Book> allBooks = bookRepository.findAllByOrderByAverageRatingDesc();
+        System.out.println("Всего книг: " + allBooks.size());
+
+        //берем первые limit книг
+        List<Book> topBooks = new ArrayList<>();
+        int count = 0;
+        for (Book book : allBooks) {
+            if (count >= limit) break;
+            topBooks.add(book);
+            count++;
+        }
+
+        System.out.println("Отобрано для топа: " + topBooks.size() + " книг");
+
+        // Преобразуем
+        List<BookResponse> responses = new ArrayList<>();
+        for (Book book : topBooks) {
+            responses.add(mapToResponse(book));
+        }
+
+        return responses;
     }
 }
