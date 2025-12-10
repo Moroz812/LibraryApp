@@ -47,4 +47,19 @@ public class BookController {
         bookService.deleteBook(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<BookResponse>> searchBooks(@RequestParam String query) {
+        return ResponseEntity.ok(bookService.searchBooks(query));
+    }
+
+    @GetMapping("/author/{authorId}")
+    public ResponseEntity<List<BookResponse>> getBooksByAuthor(@PathVariable Long authorId) {
+        return ResponseEntity.ok(bookService.getBooksByAuthor(authorId));
+    }
+
+    @GetMapping("/genre/{genreId}")
+    public ResponseEntity<List<BookResponse>> getBooksByGenre(@PathVariable Long genreId) {
+        return ResponseEntity.ok(bookService.getBooksByGenre(genreId));
+    }
 }
