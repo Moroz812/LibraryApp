@@ -4,6 +4,7 @@ import com.example.libraryapp.dto.BookRequest;
 import com.example.libraryapp.dto.BookResponse;
 import com.example.libraryapp.service.BookService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -67,5 +68,25 @@ public class BookController {
     public ResponseEntity<List<BookResponse>> getTopRatedBooks(
             @RequestParam(defaultValue = "10") int limit) {
         return ResponseEntity.ok(bookService.getTopRatedBooks(limit));
+    }
+
+    @GetMapping("/paginated")
+    public ResponseEntity<Page<BookResponse>> getBooksPaginated(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "title") String sortBy) {
+
+        return ResponseEntity.ok(bookService.getBooksPaginated(page, size, sortBy));
+    }
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<BookResponse>> filterBooks(
+            @RequestParam(required = false) Long authorId,
+            @RequestParam(required = false) Long genreId,
+            @RequestParam(required = false) Integer minYear,
+            @RequestParam(required = false) Integer maxYear,
+            @RequestParam(required = false) Double minRating) {
+
+        return ResponseEntity.ok(bookService.filterBooks(authorId, genreId, minYear, maxYear, minRating));
     }
 }

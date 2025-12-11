@@ -5,12 +5,17 @@ import com.example.libraryapp.dto.BookResponse;
 import com.example.libraryapp.entity.Author;
 import com.example.libraryapp.entity.Book;
 import com.example.libraryapp.entity.Genre;
+import com.example.libraryapp.exception.AuthorNotFoundException;
+import com.example.libraryapp.exception.BookAlreadyExistsException;
+import com.example.libraryapp.exception.BookNotFoundException;
+import com.example.libraryapp.exception.GenreNotFoundException;
 import com.example.libraryapp.repository.AuthorRepository;
 import com.example.libraryapp.repository.BookRepository;
 import com.example.libraryapp.repository.GenreRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -32,61 +37,90 @@ public class BookService {
 
 
     public BookResponse createBook(BookRequest request) {
-        //сохраняем без проверок, добавлю в другой день
-        //нужны проверки уникальности названия, что жанр существует, автор существует
-//        Book book = new Book();
-//        book.setTitle(request.getTitle());
-//        //book.setAuthor(new Author()); //заглушка
-//        //book.setGenre(new Genre()); //заглушка
-//        book.setPublicationYear(request.getPublicationYear());
-//        book.setIsbn(request.getIsbn());
-//        book.setDescription(request.getDescription());
-//        book.setPageCount(request.getPageCount());
-//        book.setAverageRating(0.0);
         System.out.println("=== CREATE BOOK ===");
         System.out.println("authorId из запроса: " + request.getAuthorId());
         System.out.println("genreId из запроса: " + request.getGenreId());
 
-        //поиск существующего автора
+        //проверка уникальности названия
+        List<Book> existingBooks = bookRepository.findByTitleContainingIgnoreCase(request.getTitle());
+        if (!existingBooks.isEmpty()) {
+            System.out.println("ОШИБКА: Книга с таким названием уже существует: " + request.getTitle());
+            throw new BookAlreadyExistsException("Книга с названием '" + request.getTitle() + "' уже существует");
+        }
+
+        //убрано автосоздание автора/жанра
+        //добавлена проверка уникальности названия
+        //добавлены исключения если автор/жанр не найдены
+        //поиск автора (не создаём нового, как раньше)
         Author author = authorRepository.findById(request.getAuthorId()).orElse(null);
-        System.out.println("Найден автор в базе: " + (author != null ? author.getName() + " (ID: " + author.getId() + ")" : "null"));
-
         if (author == null) {
-            //создаём нового автора
-            author = new Author();
-            author.setName("Автор для книги");
-            author = authorRepository.save(author);
-            System.out.println("Создан новый автор с ID: " + author.getId());
+            System.out.println("ОШИБКА: Автор не найден, ID: " + request.getAuthorId());
+            throw new AuthorNotFoundException("Автор с ID " + request.getAuthorId() + " не найден");
         }
 
-        //найти существующий жанр
+        //поиск жанра (не создаём новый, как раньше)
         Genre genre = genreRepository.findById(request.getGenreId()).orElse(null);
-        System.out.println("Найден жанр в базе: " + (genre != null ? genre.getName() + " (ID: " + genre.getId() + ")" : "null"));
-
         if (genre == null) {
-            //создаём новый жанр
-            genre = new Genre();
-            genre.setName("Жанр для книги");
-            genre = genreRepository.save(genre);
-            System.out.println("Создан новый жанр с ID: " + genre.getId());
+            System.out.println("ОШИБКА: Жанр не найден, ID: " + request.getGenreId());
+            throw new GenreNotFoundException("Жанр с ID " + request.getGenreId() + " не найден");
         }
 
-        //создаём книгу
+        //создание книги
         Book book = new Book();
         book.setTitle(request.getTitle());
-        book.setAuthor(author);        // ← УСТАНОВИТЬ ССЫЛКУ НА АВТОРА
-        book.setGenre(genre);          // ← УСТАНОВИТЬ ССЫЛКУ НА ЖАНР
+        book.setAuthor(author);
+        book.setGenre(genre);
         book.setPublicationYear(request.getPublicationYear());
         book.setIsbn(request.getIsbn());
         book.setDescription(request.getDescription());
         book.setPageCount(request.getPageCount());
         book.setAverageRating(0.0);
 
-        System.out.println("Сохраняю книгу с author_id=" + author.getId() + ", genre_id=" + genre.getId());
-
+        System.out.println("Создаю книгу: " + request.getTitle());
         Book savedBook = bookRepository.save(book);
+
         return mapToResponse(savedBook);
     }
+//        //поиск существующего автора
+//        Author author = authorRepository.findById(request.getAuthorId()).orElse(null);
+//        System.out.println("Найден автор в базе: " + (author != null ? author.getName() + " (ID: " + author.getId() + ")" : "null"));
+//
+//        if (author == null) {
+//            //создаём нового автора
+//            author = new Author();
+//            author.setName("Автор для книги");
+//            author = authorRepository.save(author);
+//            System.out.println("Создан новый автор с ID: " + author.getId());
+//        }
+//
+//        //найти существующий жанр
+//        Genre genre = genreRepository.findById(request.getGenreId()).orElse(null);
+//        System.out.println("Найден жанр в базе: " + (genre != null ? genre.getName() + " (ID: " + genre.getId() + ")" : "null"));
+//
+//        if (genre == null) {
+//            //создаём новый жанр
+//            genre = new Genre();
+//            genre.setName("Жанр для книги");
+//            genre = genreRepository.save(genre);
+//            System.out.println("Создан новый жанр с ID: " + genre.getId());
+//        }
+//
+//        //создаём книгу
+//        Book book = new Book();
+//        book.setTitle(request.getTitle());
+//        book.setAuthor(author);        // ← УСТАНОВИТЬ ССЫЛКУ НА АВТОРА
+//        book.setGenre(genre);          // ← УСТАНОВИТЬ ССЫЛКУ НА ЖАНР
+//        book.setPublicationYear(request.getPublicationYear());
+//        book.setIsbn(request.getIsbn());
+//        book.setDescription(request.getDescription());
+//        book.setPageCount(request.getPageCount());
+//        book.setAverageRating(0.0);
+//
+//        System.out.println("Сохраняю книгу с author_id=" + author.getId() + ", genre_id=" + genre.getId());
+//
+//        Book savedBook = bookRepository.save(book);
+//        return mapToResponse(savedBook);
+//    }
 
 
     public @NotNull BookResponse getBookById(Long id) {
@@ -194,21 +228,67 @@ public class BookService {
 
 
     public @NotNull BookResponse updateBook(Long id, @Valid BookRequest request) {
-        //заглушка - вернем обновленную книгу
-        //нужны проверки уникальности названия, если название изменилось, проверка жанра, проверка автора и поиск книги
-        BookResponse response = new BookResponse();
-        response.setId(id);
-        response.setTitle(request.getTitle() + " (обновлено)");
-        response.setAuthorName("Автор");
-        response.setGenreName("Жанр");
-        return response;
+        System.out.println("=== ОБНОВЛЕНИЕ КНИГИ ID: " + id + " ===");
+
+        //ищем книгу
+        Book book = bookRepository.findById(id).orElse(null);
+        if (book == null) {
+            System.out.println("ОШИБКА: Книга не найдена");
+            throw new BookNotFoundException("Книга с ID " + id + " не найдена");
+        }
+
+        //проверка уникальности названия, если изменилось
+        if (!book.getTitle().equals(request.getTitle())) {
+            List<Book> existingBooks = bookRepository.findByTitleContainingIgnoreCase(request.getTitle());
+            if (!existingBooks.isEmpty()) {
+                System.out.println("ОШИБКА: Книга с таким названием уже существует");
+                throw new BookAlreadyExistsException("Книга с названием '" + request.getTitle() + "' уже существует");
+            }
+        }
+
+        //ищем автора
+        Author author = authorRepository.findById(request.getAuthorId()).orElse(null);
+        if (author == null) {
+            System.out.println("ОШИБКА: Автор не найден");
+            throw new AuthorNotFoundException("Автор с ID " + request.getAuthorId() + " не найден");
+        }
+
+        //ищем жанр
+        Genre genre = genreRepository.findById(request.getGenreId()).orElse(null);
+        if (genre == null) {
+            System.out.println("ОШИБКА: Жанр не найден");
+            throw new GenreNotFoundException("Жанр с ID " + request.getGenreId() + " не найден");
+        }
+
+        //обновляем книгу
+        book.setTitle(request.getTitle());
+        book.setAuthor(author);
+        book.setGenre(genre);
+        book.setPublicationYear(request.getPublicationYear());
+        book.setIsbn(request.getIsbn());
+        book.setDescription(request.getDescription());
+        book.setPageCount(request.getPageCount());
+
+        System.out.println("Обновляю книгу: " + book.getTitle());
+        Book updatedBook = bookRepository.save(book);
+
+        return mapToResponse(updatedBook);
     }
 
 
     public void deleteBook(Long id) {
-        //просто выводим в консоль
-        //добавить проверку, что книга существует
-        System.out.println("Удаление книги с ID: " + id);
+        System.out.println("=== УДАЛЕНИЕ КНИГИ ID: " + id + " ===");
+
+        //проверяем существование книги
+        if (!bookRepository.existsById(id)) {
+            System.out.println("ОШИБКА: Книга не найдена");
+            throw new BookNotFoundException("Книга с ID " + id + " не найдена");
+        }
+
+        //удаляем книгу
+        //подумать про удаление отзывов
+        bookRepository.deleteById(id);
+        System.out.println("Книга удалена");
     }
 
 
@@ -223,7 +303,7 @@ public class BookService {
         return responses;
     }
 
-    //не забыть убрать логирование в консоль, после отладки
+
     public List<BookResponse> getBooksByAuthor(Long authorId) {
         //получить все книги автора
         System.out.println("Поиск книг автора ID: " + authorId);
@@ -321,16 +401,6 @@ public class BookService {
         response.setPageCount(book.getPageCount());
 
         System.out.println("Создан response: " + response.getTitle());
-//        BookResponse response = new BookResponse();
-//        response.setId(book.getId());
-//        response.setTitle(book.getTitle());
-//        response.setAuthorName("Автор"); //заглушка
-//        response.setGenreName("Жанр"); //заглушка
-//        response.setPublicationYear(book.getPublicationYear());
-//        response.setIsbn(book.getIsbn());
-//        response.setDescription(book.getDescription());
-//        response.setAverageRating(book.getAverageRating());
-//        response.setPageCount(book.getPageCount());
         return response;
     }
 
@@ -359,4 +429,89 @@ public class BookService {
 
         return responses;
     }
+
+    public Page<BookResponse> getBooksPaginated(int page, int size, String sortBy) {
+        System.out.println("=== ПАГИНАЦИЯ: page=" + page + ", size=" + size + ", sortBy=" + sortBy + " ===");
+
+        //объект пагинации
+        org.springframework.data.domain.Pageable pageable =
+                org.springframework.data.domain.PageRequest.of(page, size,
+                        org.springframework.data.domain.Sort.by(sortBy).ascending());
+
+        //получаем страницу книг
+        org.springframework.data.domain.Page<Book> bookPage = bookRepository.findAll(pageable);
+
+        System.out.println("Всего книг: " + bookPage.getTotalElements());
+        System.out.println("Всего страниц: " + bookPage.getTotalPages());
+        System.out.println("Текущая страница: " + bookPage.getNumber());
+        System.out.println("Книг на странице: " + bookPage.getNumberOfElements());
+
+        //преобразуем Book в BookResponse с поддержкой пагинации
+        return bookPage.map(this::mapToResponse);
+    }
+
+    public List<BookResponse> filterBooks(Long authorId, Long genreId, Integer minYear, Integer maxYear, Double minRating) {
+        System.out.println("=== ФИЛЬТРАЦИЯ КНИГ ===");
+        System.out.println("authorId: " + authorId + ", genreId: " + genreId + ", minYear: " + minYear + ", maxYear: " + maxYear + ", minRating: " + minRating);
+        List<Book> filteredBooks = bookRepository.findWithFilters(
+                authorId, genreId, minYear, maxYear, minRating
+        );
+
+        System.out.println("Найдено книг после фильтрации: " + filteredBooks.size());
+
+        List<BookResponse> responses = new ArrayList<>();
+        for (Book book : filteredBooks) {
+            responses.add(mapToResponse(book));
+        }
+
+        return responses;
+    }
 }
+//        //получаем все книги
+//        List<Book> allBooks = bookRepository.findAll();
+//        List<Book> filteredBooks = new ArrayList<>();
+//        //применяем фильтры
+//        for (Book book : allBooks) {
+//            boolean matches = true;
+//            //фильтр по автору
+//            if (authorId != null) {
+//                if (book.getAuthor() == null || !book.getAuthor().getId().equals(authorId)) {
+//                    matches = false;
+//                }
+//            }
+//            //фильтр по жанру
+//            if (matches && genreId != null) {
+//                if (book.getGenre() == null || !book.getGenre().getId().equals(genreId)) {
+//                    matches = false;
+//                }
+//            }
+//            //фильтр по минимальному году
+//            if (matches && minYear != null) {
+//                if (book.getPublicationYear() == null || book.getPublicationYear() < minYear) {
+//                    matches = false;
+//                }
+//            }
+//            //фильтр по максимальному году
+//            if (matches && maxYear != null) {
+//                if (book.getPublicationYear() == null || book.getPublicationYear() > maxYear) {
+//                    matches = false;
+//                }
+//            }
+//            //фильтр по минимальному рейтингу
+//            if (matches && minRating != null) {
+//                if (book.getAverageRating() == null || book.getAverageRating() < minRating) {
+//                    matches = false;
+//                }
+//            }
+//            if (matches) {
+//                filteredBooks.add(book);
+//            }
+//        }
+//        System.out.println("Найдено книг после фильтрации: " + filteredBooks.size());
+//        //преобразуем в ответ
+//        List<BookResponse> responses = new ArrayList<>();
+//        for (Book book : filteredBooks) {
+//            responses.add(mapToResponse(book));
+//        }
+//        return responses;
+//    }
