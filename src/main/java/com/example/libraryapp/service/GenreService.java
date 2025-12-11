@@ -61,19 +61,33 @@ public class GenreService {
 
 
     public GenreResponse updateGenre(Long id, @Valid GenreRequest request) {
-        Genre genre = genreRepository.findById(id)
-                .orElseThrow(() -> new GenreNotFoundException("Жанр с ID " + id + " не найден"));
-        //проверка уникальности
+        System.out.println("=== ОБНОВЛЕНИЕ ЖАНРА ID: " + id + " ===");
+
+        Genre genre = genreRepository.findById(id).orElseThrow(() -> new GenreNotFoundException("Жанр с ID " + id + " не найден"));
+
+        System.out.println("Найден жанр: " + genre.getName() + " (ID: " + genre.getId() + ")");
+
+        //проверяем уникальность, если имя изменилось
         if (!genre.getName().equals(request.getName())) {
+            System.out.println("Название меняется с '" + genre.getName() + "' на '" + request.getName() + "'");
+
             if (genreRepository.findByName(request.getName()).isPresent()) {
+                System.out.println("ОШИБКА: Жанр с названием '" + request.getName() + "' уже существует");
                 throw new DuplicateGenreException("Жанр с названием '" + request.getName() + "' уже существует");
             }
+
+            genre.setName(request.getName());
+            System.out.println("Название обновлено");
+        } else {
+            System.out.println("Название не изменилось, пропускаем проверку уникальности");
         }
-        genre.setName(request.getName());
 
         Genre updatedGenre = genreRepository.save(genre);
+        System.out.println("Жанр обновлен: " + updatedGenre.getName());
+
         return mapToResponse(updatedGenre);
     }
+
 
     public void deleteGenre(Long id) {
         if (!genreRepository.existsById(id)) {

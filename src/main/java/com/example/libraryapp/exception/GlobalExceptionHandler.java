@@ -2,12 +2,15 @@ package com.example.libraryapp.exception;
 
 
 import com.example.libraryapp.dto.ErrorResponse;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -97,6 +100,39 @@ public class GlobalExceptionHandler {
         return new ErrorResponse(
                 HttpStatus.CONFLICT.value(),
                 ex.getMessage(),
+                LocalDateTime.now()
+        );
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleConstraintViolation(ConstraintViolationException ex) {
+        // Собираем все сообщения об ошибках валидации
+        String errorMessage = ex.getConstraintViolations().stream()
+                .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
+                .collect(Collectors.joining(", "));
+
+        System.out.println("Ошибка валидации: " + errorMessage);
+
+        return new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Ошибка валидации: " + errorMessage,
+                LocalDateTime.now()
+        );
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+
+        System.out.println("Ошибка валидации аргументов: " + errorMessage);
+
+        return new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Ошибка валидации: " + errorMessage,
                 LocalDateTime.now()
         );
     }

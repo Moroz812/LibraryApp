@@ -1,6 +1,13 @@
 package com.example.libraryapp.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Pattern;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 public class Book {
@@ -21,11 +28,22 @@ public class Book {
     @JoinColumn(name = "genre_id")
     private Genre genre;
 
+
+    @Min(value = 1700, message = "Год публикации должен быть от 1700")
+    @Max(value = 2025, message = "Год публикации не может быть больше 2025")
+    //@PastOrPresent(message = "Год публикации не может быть из будущего")
     private Integer publicationYear;
+
+    @Pattern(regexp = "^[0-9-]{10,17}$",
+            message = "ISBN должен содержать только цифры и дефисы, от 10 до 17 символов")
     private String isbn;
     private String description;
     private Double averageRating;
     private Integer pageCount;
+
+    //при удалении книги отзывы удалятся автоматически
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviews = new ArrayList<>();
 
     public Book() {
     }

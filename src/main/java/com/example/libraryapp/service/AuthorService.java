@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -28,15 +29,30 @@ public class AuthorService {
     }
 
 
-    public AuthorResponse createAuthor(@Valid AuthorRequest request) throws DuplicateAuthorException {
+    public AuthorResponse createAuthor(@Valid AuthorRequest request) {
+        System.out.println("=== СОЗДАНИЕ АВТОРА ===");
+
         //проверка уникальности имени
-        if (authorRepository.findByName(request.getName()).isPresent()) {
+        Optional<Author> existingAuthor = authorRepository.findByName(request.getName());
+        if (existingAuthor.isPresent()) {
+            System.out.println("ОШИБКА: Автор с таким именем уже существует");
             throw new DuplicateAuthorException("Автор с именем '" + request.getName() + "' уже существует");
         }
+
+        // Создаем автора БЕЗ указания ID
         Author author = new Author();
         author.setName(request.getName());
-        Author savedAuthor = authorRepository.save(author);
-        return mapToResponse(savedAuthor);
+
+        System.out.println("Сохраняю автора: " + request.getName());
+
+        try {
+            Author savedAuthor = authorRepository.save(author);
+            System.out.println("Автор сохранен с ID: " + savedAuthor.getId());
+            return mapToResponse(savedAuthor);
+        } catch (Exception e) {
+            System.out.println("Ошибка при сохранении автора: " + e.getMessage());
+            throw new RuntimeException("Не удалось сохранить автора", e);
+        }
     }
 
 
@@ -84,16 +100,34 @@ public class AuthorService {
 //    если изменилось - проверить, нет ли другого автора с таким именем
 //    сохранить изменения
     public AuthorResponse updateAuthor(Long id, @Valid AuthorRequest request) {
-        //обновляем, без проверки уникальности
+        System.out.println("=== ОБНОВЛЕНИЕ АВТОРА ID: " + id + " ===");
+        //находим автора
         Author author = authorRepository.findById(id).orElse(null);
-
         if (author == null) {
+            System.out.println("ОШИБКА: Автор не найден");
             throw new AuthorNotFoundException("Автор с ID " + id + " не найден");
         }
 
-        //обновляем имя (даже если такое уже есть)
-        author.setName(request.getName());
+        System.out.println("Найден автор: " + author.getName() + " (ID: " + author.getId() + ")");
+
+        //проверяем, изменилось ли имя
+        if (!author.getName().equals(request.getName())) {
+            System.out.println("Имя меняется с '" + author.getName() + "' на '" + request.getName() + "'");
+            //проверяем уникальность нового имени
+            Optional<Author> existingAuthor = authorRepository.findByName(request.getName());
+            if (existingAuthor.isPresent()) {
+                System.out.println("ОШИБКА: Автор с именем '" + request.getName() + "' уже существует");
+                throw new DuplicateAuthorException("Автор с именем '" + request.getName() + "' уже существует");
+            }
+            //обновляем имя
+            author.setName(request.getName());
+            System.out.println("Имя обновлено");
+        } else {
+            System.out.println("Имя не изменилось, пропускаем проверку уникальности");
+        }
+        //сохраняем
         Author updatedAuthor = authorRepository.save(author);
+        System.out.println("Автор обновлен: " + updatedAuthor.getName());
 
         return mapToResponse(updatedAuthor);
     }

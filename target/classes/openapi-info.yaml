@@ -1,0 +1,11 @@
+openapi: 3.0.3
+info:
+  title: Library App API
+  description: REST API для управления библиотекой книг
+  version: 1.0.0
+  contact:
+    name: Sergey
+    email: antigenspb@gmail.com
+servers:
+  - url: http://localhost:8080
+    description: Локальный сервер
