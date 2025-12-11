@@ -81,46 +81,6 @@ public class BookService {
 
         return mapToResponse(savedBook);
     }
-//        //поиск существующего автора
-//        Author author = authorRepository.findById(request.getAuthorId()).orElse(null);
-//        System.out.println("Найден автор в базе: " + (author != null ? author.getName() + " (ID: " + author.getId() + ")" : "null"));
-//
-//        if (author == null) {
-//            //создаём нового автора
-//            author = new Author();
-//            author.setName("Автор для книги");
-//            author = authorRepository.save(author);
-//            System.out.println("Создан новый автор с ID: " + author.getId());
-//        }
-//
-//        //найти существующий жанр
-//        Genre genre = genreRepository.findById(request.getGenreId()).orElse(null);
-//        System.out.println("Найден жанр в базе: " + (genre != null ? genre.getName() + " (ID: " + genre.getId() + ")" : "null"));
-//
-//        if (genre == null) {
-//            //создаём новый жанр
-//            genre = new Genre();
-//            genre.setName("Жанр для книги");
-//            genre = genreRepository.save(genre);
-//            System.out.println("Создан новый жанр с ID: " + genre.getId());
-//        }
-//
-//        //создаём книгу
-//        Book book = new Book();
-//        book.setTitle(request.getTitle());
-//        book.setAuthor(author);        // ← УСТАНОВИТЬ ССЫЛКУ НА АВТОРА
-//        book.setGenre(genre);          // ← УСТАНОВИТЬ ССЫЛКУ НА ЖАНР
-//        book.setPublicationYear(request.getPublicationYear());
-//        book.setIsbn(request.getIsbn());
-//        book.setDescription(request.getDescription());
-//        book.setPageCount(request.getPageCount());
-//        book.setAverageRating(0.0);
-//
-//        System.out.println("Сохраняю книгу с author_id=" + author.getId() + ", genre_id=" + genre.getId());
-//
-//        Book savedBook = bookRepository.save(book);
-//        return mapToResponse(savedBook);
-//    }
 
 
     public @NotNull BookResponse getBookById(Long id) {
@@ -467,51 +427,3 @@ public class BookService {
         return responses;
     }
 }
-//        //получаем все книги
-//        List<Book> allBooks = bookRepository.findAll();
-//        List<Book> filteredBooks = new ArrayList<>();
-//        //применяем фильтры
-//        for (Book book : allBooks) {
-//            boolean matches = true;
-//            //фильтр по автору
-//            if (authorId != null) {
-//                if (book.getAuthor() == null || !book.getAuthor().getId().equals(authorId)) {
-//                    matches = false;
-//                }
-//            }
-//            //фильтр по жанру
-//            if (matches && genreId != null) {
-//                if (book.getGenre() == null || !book.getGenre().getId().equals(genreId)) {
-//                    matches = false;
-//                }
-//            }
-//            //фильтр по минимальному году
-//            if (matches && minYear != null) {
-//                if (book.getPublicationYear() == null || book.getPublicationYear() < minYear) {
-//                    matches = false;
-//                }
-//            }
-//            //фильтр по максимальному году
-//            if (matches && maxYear != null) {
-//                if (book.getPublicationYear() == null || book.getPublicationYear() > maxYear) {
-//                    matches = false;
-//                }
-//            }
-//            //фильтр по минимальному рейтингу
-//            if (matches && minRating != null) {
-//                if (book.getAverageRating() == null || book.getAverageRating() < minRating) {
-//                    matches = false;
-//                }
-//            }
-//            if (matches) {
-//                filteredBooks.add(book);
-//            }
-//        }
-//        System.out.println("Найдено книг после фильтрации: " + filteredBooks.size());
-//        //преобразуем в ответ
-//        List<BookResponse> responses = new ArrayList<>();
-//        for (Book book : filteredBooks) {
-//            responses.add(mapToResponse(book));
-//        }
-//        return responses;
-//    }
